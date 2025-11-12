@@ -25,3 +25,16 @@
 11.Map custom domain to ALB: add a CNAME (www) pointing to the load balancer DNS (use A record if you have a static IP).
 
 12.Use Cloudflare (free tier) to add domain, change nameservers in GoDaddy to Cloudflare’s, enable “Always use HTTPS” (edge certificates). After propagation, site shows HTTPS / secure
+
+**Key files / places mentioned**
+
+1.app properties: src/main/resources/application.properties — database credentials & datasource URL (service name) used by app.
+
+2.Terraform folder: eks terraform inside the GitHub repo (variables for region, AZs, private key name).
+
+3.Dockerfile (if missing create it) — example uses JDK 17 base, copies target/*.jar and exposes 8080.
+
+4.Jenkins settings.xml (managed file) — contains Nexus repo URLs + credentials (server id = repo name).
+
+5.Kubernetes manifests: mysql-deployment.yaml, ds.yaml (app), svc.yaml, and RBAC files: svc.yaml, role.yaml, bind.yaml, sec.yaml.
+

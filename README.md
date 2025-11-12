@@ -95,3 +95,20 @@ mvn package -DskipTests=true
 
 trivy fs --format template --template "@contrib/html.tpl" -o fs-report.html .
 trivy image <image-name>
+
+
+**Common pitfalls & troubleshooting**
+
+1.Region / AZ mismatch in Terraform variables — set region and AZs correctly.
+
+2.Private key name must match the keypair name in AWS (set in Terraform variables).
+
+3.Missing Dockerfile in repo caused Docker build failure — add/copy Dockerfile into repo.
+
+4.Tools missing on Jenkins host (kubectl, trivy) — install them on Jenkins VM, otherwise pipeline will fail.
+
+5.Test failures: use -DskipTests=true for demo; for production fix tests instead of skipping.
+
+6.Name server propagation: Cloudflare nameserver changes can take minutes → wait and verify with DNS checker / nslookup.
+
+7.Service connection: app should connect to DB using Kubernetes service name, not pod IP.

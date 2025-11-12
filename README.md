@@ -38,3 +38,60 @@
 
 5.Kubernetes manifests: mysql-deployment.yaml, ds.yaml (app), svc.yaml, and RBAC files: svc.yaml, role.yaml, bind.yaml, sec.yaml.
 
+
+**Most important commands**
+
+**AWS configure:**
+
+aws configure
+
+
+**Terraform:**
+
+terraform init
+terraform plan
+terraform apply -auto-approve
+
+
+**Clone repo:**
+
+git clone <repo-url>
+cd <repo>/eks-terraform
+
+
+**Create EKS kubeconfig:**
+
+aws eks --region <region> update-kubeconfig --name <cluster-name>
+
+
+**Kubectl apply:**
+
+kubectl apply -f <manifest>.yaml -n web-apps
+
+
+**To view pods/services:**
+
+kubectl get pods -n web-apps
+kubectl get svc -n web-apps
+kubectl logs <pod> -n web-apps -f
+
+
+**Docker run (Nexus example):**
+
+sudo docker run -d --name nexus3 -p 8081:8081 sonatype/nexus3
+
+
+**Access Jenkins initial admin password:**
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+
+**Skip tests in Maven:**
+
+mvn package -DskipTests=true
+
+
+**Trivy:**
+
+trivy fs --format template --template "@contrib/html.tpl" -o fs-report.html .
+trivy image <image-name>

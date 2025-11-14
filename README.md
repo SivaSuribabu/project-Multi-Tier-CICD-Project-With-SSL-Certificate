@@ -3,7 +3,7 @@
 2.Go to the AWS console and created the securitypes group and the open ports -- 25, 80, 443, 2000-11000,22, 465, 6443.
 3.create 2 t2.medium servers for sonarqube and Nexus.
 4.create t2.large server for Jenkins.
-
+5.Download the mobxterm to connect servers(settings, configuration, ssh, checkbook the disconnect box)
 
 
 

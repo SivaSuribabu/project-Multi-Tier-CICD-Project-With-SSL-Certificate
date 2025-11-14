@@ -1,6 +1,9 @@
 
 1.Create a github repository for the project and clone it.
 2.Go to the AWS console and created the securitypes group and the open ports -- 25, 80, 443, 2000-11000,22, 465, 6443.
+3.create 2 t2.medium servers for sonarqube and Nexus.
+4.create t2.large server for Jenkins.
+
 
 
 

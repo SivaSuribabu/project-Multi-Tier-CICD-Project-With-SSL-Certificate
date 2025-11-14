@@ -4,10 +4,10 @@
 3.create 2 t2.medium servers for sonarqube and Nexus.
 4.create t2.large server for Jenkins.
 5.Download the mobxterm to connect servers(settings, configuration, ssh, checkbook the disconnect box)(paste ip, username,advance ssh.
-5.install java in Jenkins server (sudo apt install openjdk-17-jre-headless -y)
-
-
-
+5.install java in Jenkins server (sudo apt install openjdk-17-jre-headless -y) then install Jenkins, install docker( sudo apt install Docker.io, sudo chmod 666 /var/run/docker.sock),log into the jenkins, install plugins.
+6.log into the Nexus server (sudo apt install Docker.io,sudo docker run -d -p 8081:8081sonatype/nexus3), take ip then log into the ui(admin,sudo docker exec -it containerid /bin/bash)
+7.log into the sonarqube(sudo apt install Docker.io -y, docker run -d -p 9000:9000 sonarqube:lts-comuunity) and login (admin,admin). create a token also.
+8.Write JenkinsFile for pipeline(sonarqube,config file provider,pipeline Maven integration,kubernetes,docker plugins)manage jenkins-->tools-->docker(install 
 
 # project-Multi-Tier-CICD-Project-With-SSL-Certificate
 

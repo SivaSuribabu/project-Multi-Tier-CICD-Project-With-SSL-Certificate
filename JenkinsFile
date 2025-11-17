@@ -1,0 +1,60 @@
+pipeline{
+    agent any
+
+    tools{
+        jdk "jdk21"
+        maven "maven3"
+    }
+
+    environment{
+        SONARQUBE_SCANNER_HOME = tool 'sonar-scanner'
+    }
+
+    stages{
+        stage(CheckoutStage){
+            steps{
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/SivaSuribabu/project-Multi-Tier-CICD-Project-With-SSL-Certificate.git']])
+
+            }
+        }
+
+        stage(Compile-Stage){
+            steps{
+                sh "mvn compile"
+            }
+        }
+
+        stage(Test-Stage){
+            steps{
+                sh "mvn test"
+            }
+        }
+
+        stage(FS scan Stage){
+            steps{
+                sh "trivy fs --format table -o trivy-fs.html . "
+            }
+        }
+        stage(staticode-analysis){
+            withSonarQubeEnv("sonar-scanner"){
+                sh '''${SONARQUBE_SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=Multi-Tier-CICD-Project-With-SSL-Certificate \
+                -Dsonar.projectKey=Multi-Tier-CICD-Project-With-SSL-Certificate \
+                -Dsonar.java.binaries=target/ '''
+            }
+        }
+        stage(package-Stage){
+            steps{
+                sh "mvn package"
+            }
+        }
+
+        stage(Publish-artifact-Stage){
+            steps{
+                withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: 'jdk21', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
+                 sh "mvn deploy"      
+                }
+            }
+        }
+
+    }
+}

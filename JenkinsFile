@@ -11,12 +11,6 @@ pipeline{
     }
 
     stages{
-        stage(CheckoutStage){
-            steps{
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/SivaSuribabu/project-Multi-Tier-CICD-Project-With-SSL-Certificate.git']])
-
-            }
-        }
 
         stage(Compile-Stage){
             steps{

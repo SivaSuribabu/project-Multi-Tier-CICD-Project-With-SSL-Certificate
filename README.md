@@ -26,6 +26,9 @@
 
 12.Use Cloudflare (free tier) to add domain, change nameservers in GoDaddy to Cloudflare’s, enable “Always use HTTPS” (edge certificates). After propagation, site shows HTTPS / secure
 
+
+
+
 **Key files / places mentioned**
 
 1.app properties: src/main/resources/application.properties — database credentials & datasource URL (service name) used by app.

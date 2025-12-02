@@ -52,7 +52,7 @@ pipeline{
                 }
             }
 
-            sgate("Artifacts-nexus-upload-stage"){
+            stage("Artifacts-nexus-upload-stage"){
                 steps{
                     withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: 'jdk21', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
                         sh "mvn deploy"

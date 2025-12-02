@@ -38,7 +38,7 @@ pipeline{
             stage("staticsode-analysis"){
                 steps{
                     withSonarQubeEnv('sonar-server'){
-                        sh ''' $SCANNER_HIME/bin/sonar-scanner \
+                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
                         -Dsonar.projectName=updated-blogging-app \
                         -Dsonar.projectKey=updated-blogging-app \
                         -Dsonar.java.binaries=target '''

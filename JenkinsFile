@@ -97,8 +97,8 @@ pipeline{
                             git config user.email "sivasuribabupenkey@gmail.com"
                             git config user.name "SivaSuribabu"
                             BUILD_NUMBER=${BUILD_NUMBER}
-                            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yml
-                            git add project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yml
+                            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yaml
+                            git add project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yaml
                             git commit -m "Updating image tag to ${BUILD_NUMBER}"
                             git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                             '''

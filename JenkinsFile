@@ -60,7 +60,7 @@ pipeline{
                 }
             }
 
-            stage("dodkcer-image-build-stage"){
+            stage("docker-image-build-stage"){
                 steps{
                     script{
                         withDockerRegistry(credentialsId: 'docker-credd') {

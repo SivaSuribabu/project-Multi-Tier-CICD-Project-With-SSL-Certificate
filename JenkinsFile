@@ -2,53 +2,96 @@ pipeline{
     agent any
 
     tools{
+        maven 'maven'
         jdk "jdk21"
-        maven "maven3"
     }
 
     environment{
-        SONARQUBE_SCANNER_HOME = tool 'sonar-scanner'
+        SCANNER_HOME = tool "sonar-scanner"
     }
-
+    
     stages{
+            stage("source-code-checkout-stage"){
+                steps{
+                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/SivaSuribabu/project-Multi-Tier-CICD-Project-With-SSL-Certificate.git']])
+                }
+            } 
 
-        stage(Compile-Stage){
-            steps{
-                sh "mvn compile"
-            }
-        }
-
-        stage(Test-Stage){
-            steps{
-                sh "mvn test"
-            }
-        }
-
-        stage(FS scan Stage){
-            steps{
-                sh "trivy fs --format table -o trivy-fs.html . "
-            }
-        }
-        stage(staticode-analysis){
-            withSonarQubeEnv("sonar-scanner"){
-                sh '''${SONARQUBE_SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=Multi-Tier-CICD-Project-With-SSL-Certificate \
-                -Dsonar.projectKey=Multi-Tier-CICD-Project-With-SSL-Certificate \
-                -Dsonar.java.binaries=target/ '''
-            }
-        }
-        stage(package-Stage){
-            steps{
-                sh "mvn package"
-            }
-        }
-
-        stage(Publish-artifact-Stage){
-            steps{
-                withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: 'jdk21', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
-                 sh "mvn deploy"      
+            stage("code-compile-stage"){
+                steps{
+                    sh "mvn clean compile"
                 }
             }
-        }
 
+            stage("unit-test-stage"){
+                steps{
+                    sh "mvn test"
+                }
+            }
+
+            stage("file-system-scan"){
+                steps{
+                    sh "trivy fs --format table -o trivy-fs-scan-report.html"
+                }
+            }
+
+            stage("staticsode-analysis"){
+                steps{
+                    withSonarQubeEnv('sonar-server'){
+                        sh ''' $SCANNER_HIME/bin/sonar-scanner \
+                        -Dsonar.projectname=Multi-Tier-CICD-Project-With-SSL-Certificate \
+                        -Dsonar.projectKey=Multi-Tier-CICD-Project-With-SSL-Certificate \
+                        -Dsonar.java.binaries=target/ '''
+                    }
+
+                }
+            }
+            stage("code-packaging-stage"){
+                steps{
+                    sh "mvn clean package"
+                }
+            }
+
+            sgate("Artifacts-nexus-upload-stage"){
+                steps{
+                    withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: 'jdk21', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
+                        sh "mvn deploy"
+                    }
+                }
+            }
+
+            stage("dodkcer-image-build-stage"){
+                steps{
+                    script{
+                        withDockerRegistry(credentialsId: 'docker-credd') {
+                            sh "docker build -t sivasuribabu/blogging-app:V1.0 ."
+                    }
+                }
+            }
+
+            stage("docker-image-scanning-stage"){
+                steps{
+                    sh "trivy image --format table -o trivy-image-scan-report.html sivasuribabu/blogging-app:V1.0"
+                }
+            }
+
+            stage("docker-push-stage"){
+                steps{
+                    script{
+                        withDockerRegistry(credentialsId: 'docker-credd') {
+                            sh "docker push sivasuribabu/blogging-app:V1.0"
+                        }
+                    }   
+                }
+
+            }
+
+            stage("update-k8s-manifests-files"){
+                environment{
+                    GIT_REPOSITORY = '
+                }
+            }
+
+        }
     }
 }

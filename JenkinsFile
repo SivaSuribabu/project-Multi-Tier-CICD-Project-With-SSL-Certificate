@@ -88,10 +88,37 @@ pipeline{
 
             stage("update-k8s-manifests-files"){
                 environment{
-                    GIT_REPOSITORY = '
+                    GIT_REPOSITORY = 'project-Multi-Tier-CICD-Project-With-SSL-Certificate'
+                    GIT_USERNAME = 'SivaSuribabu'
+                }
+                steps{
+                    withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                        sh '''
+                            git config user.email "sivasuribabupenkey@gmail.com"
+                            git config user.name "SivaSuribabu"
+                            BUILD_NUMBER=${BUILD_NUMBER}
+                            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yml
+                            git add project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yml
+                            git commit -m "Updating image tag to ${BUILD_NUMBER}"
+                            git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                            '''
+
+                    }
                 }
             }
 
+            stage("email-notification-stage"){
+                steps{
+                    emailext attachLog: true,
+                    subject: "Build-${BUILD_NUMBER} - ${JOB_NAME} - ${BUILD_STATUS}",
+                    body: '''<p>Hi Siva Suribabu,</p>
+                             <p>The build number ${BUILD_NUMBER} for the job ${JOB_NAME} has completed with status: ${BUILD_STATUS}.</p>
+                             <p>Please find the attached build log for more details.</p>
+                             <p>Regards,<br/>Jenkins CI/CD Pipeline</p>''',
+                    to: 'sivasuribabupenkey@gmail.com' ,
+                    cc: 'clouddevopsengineer0@gmail.com' , 'clouddevopsenginner2@gmail.com' , 'clouddevopsenginner3@gmail.com' 
+                }
+            }
         }
     }
 }

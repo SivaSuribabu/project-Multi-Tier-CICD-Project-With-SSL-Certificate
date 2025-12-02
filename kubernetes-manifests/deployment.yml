@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-deployment
+  labels:
+    app: blogging-app
+    version: v1
+    environment: staging
+    team: dev-team
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blogging-app
+      version: v1
+      environment: staging
+      team: dev-team
+  template:
+    metadata:
+      labels:
+        app: blogging-app
+        version: v1
+        environment: staging
+        team: dev-team
+    spec:
+      revisionHistoryLimit: 5
+      containers:
+      - name: blogging-app
+        image: sivasuribabu/blogging-app:replaceImageTag
+        imagepullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /ready
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
+          rolloutStrategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 1
+              maxSurge: 1
+      imagePullSecrets:
+      - name: my-registry-secret
+      restartPolicy: Always
+      nodeSelector:
+        disktype: ssd
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - blogging-app
+            topologyKey: "kubernetes.io/hostname"
+      tolerations:
+      - key: "key1"
+        operator: "Equal"
+        value: "value1"
+        effect: "NoSchedule"
+      - key: "key2"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 3600
+  
+    

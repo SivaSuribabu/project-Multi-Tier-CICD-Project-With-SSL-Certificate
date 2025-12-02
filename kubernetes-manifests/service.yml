@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: blogging-app-service
+  labels:
+    app: blogging-app
+    environment: dev-team
+spec:
+  selector:
+    app: blogging-app
+    environment: dev-team
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: NodePort

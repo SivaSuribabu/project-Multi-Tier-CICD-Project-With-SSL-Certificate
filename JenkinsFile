@@ -119,6 +119,5 @@ pipeline{
                     cc: 'clouddevopsengineer0@gmail.com' , 'clouddevopsenginner2@gmail.com' , 'clouddevopsenginner3@gmail.com' 
                 }
             }
-        }
     }
 }

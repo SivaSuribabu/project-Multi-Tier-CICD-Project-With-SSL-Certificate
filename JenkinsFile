@@ -65,10 +65,10 @@ pipeline{
                     script{
                         withDockerRegistry(credentialsId: 'docker-credd') {
                             sh "docker build -t sivasuribabu/blogging-app:V1.0 ."
+                        }
                     }
                 }
             }
-
             stage("docker-image-scanning-stage"){
                 steps{
                     sh "trivy image --format table -o trivy-image-scan-report.html sivasuribabu/blogging-app:V1.0"

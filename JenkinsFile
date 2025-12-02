@@ -41,7 +41,7 @@ pipeline{
                         sh ''' $SCANNER_HIME/bin/sonar-scanner \
                         -Dsonar.projectName=updated-blogging-app \
                         -Dsonar.projectKey=updated-blogging-app \
-                        -Dsonar.java.binaries=target/ '''
+                        -Dsonar.java.binaries=target '''
                     }
 
                 }

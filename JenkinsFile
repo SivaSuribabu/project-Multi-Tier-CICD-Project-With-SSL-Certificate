@@ -109,14 +109,16 @@ pipeline{
 
             stage("email-notification-stage"){
                 steps{
-                    emailext attachLog: true,
-                    subject: "Build-${BUILD_NUMBER} - ${JOB_NAME} - ${BUILD_STATUS}",
-                    body: '''<p>Hi Siva Suribabu,</p>
-                             <p>The build number ${BUILD_NUMBER} for the job ${JOB_NAME} has completed with status: ${BUILD_STATUS}.</p>
-                             <p>Please find the attached build log for more details.</p>
-                             <p>Regards,<br/>Jenkins CI/CD Pipeline</p>''',
-                    to: 'sivasuribabupenkey@gmail.com' ,
-                    cc: 'clouddevopsengineer0@gmail.com' , 'clouddevopsenginner2@gmail.com' , 'clouddevopsenginner3@gmail.com' 
+                    emailext (
+                        attachLog: true,
+                        subject: "Build-${BUILD_NUMBER} - ${JOB_NAME} - ${BUILD_STATUS}",
+                        body: '''<p>Hi Siva Suribabu,</p>
+                                <p>The build number ${BUILD_NUMBER} for the job ${JOB_NAME} has completed with status: ${BUILD_STATUS}.</p>
+                                <p>Please find the attached build log for more details.</p>
+                                <p>Regards,<br/>Jenkins CI/CD Pipeline</p>''',
+                        to: 'sivasuribabupenkey@gmail.com' ,
+                        cc: 'clouddevopsengineer0@gmail.com' , 'clouddevopsenginner2@gmail.com' , 'clouddevopsenginner3@gmail.com' 
+                    )
                 }
             }
     }

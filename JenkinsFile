@@ -86,26 +86,46 @@ pipeline{
 
             }
 
-            stage("update-k8s-manifests-files"){
-                environment{
+            stage("update-k8s-manifests-files") {
+                environment {
                     GIT_REPOSITORY = 'project-Multi-Tier-CICD-Project-With-SSL-Certificate'
-                    GIT_USERNAME = 'SivaSuribabu'
+                    GIT_USERNAME   = 'SivaSuribabu'
                 }
-                steps{
+                steps {
                     withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-                        sh '''
-                            git config user.email "sivasuribabupenkey@gmail.com"
-                            git config user.name "SivaSuribabu"
-                            BUILD_NUMBER=${BUILD_NUMBER}
-                            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yaml
-                            git add project-Multi-Tier-CICD-Project-With-SSL-Certificate/kubernetes-manifests/deployment.yaml
-                            git commit -m "Updating image tag to ${BUILD_NUMBER}"
-                            git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                            '''
+                        // Use triple-double quotes so Groovy interpolates env vars like ${env.GIT_REPOSITORY}
+                        sh """
+                            set -euo pipefail
 
+                            git config user.email "sivasuribabupenkey@gmail.com"
+                            git config user.name "${env.GIT_USERNAME}"
+
+                            WORKING_FILE="${env.GIT_REPOSITORY}/kubernetes-manifests/deployment.yaml"
+
+                            if [ ! -f "$WORKING_FILE" ]; then
+                            echo "ERROR: file not found: $WORKING_FILE"
+                            ls -la "${env.GIT_REPOSITORY}/kubernetes-manifests" || true
+                            exit 1
+                            fi
+
+                            # Replace tag placeholder with the current build number
+                            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" "$WORKING_FILE"
+
+                            git add "$WORKING_FILE"
+
+                            # Commit only if there are staged changes
+                            if git diff --cached --quiet; then
+                            echo "No changes to commit"
+                            else
+                            git commit -m "Updating image tag to ${BUILD_NUMBER}"
+                            # Push using token; note withCredentials will mask the token in console output
+                            git push "https://${GITHUB_TOKEN}@github.com/${env.GIT_USERNAME}/${env.GIT_REPOSITORY}.git" HEAD:main
+                            fi
+                        """
                     }
                 }
             }
+
 
             // stage("email-notification-stage"){
             //     steps{

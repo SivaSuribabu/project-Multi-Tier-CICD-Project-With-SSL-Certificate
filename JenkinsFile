@@ -133,18 +133,26 @@ pipeline{
                 }
                 steps {
                     withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-                        sh '''
+                            sh '''
                             git config user.email "sivasuribabupenkey@gmail.com"
                             git config user.name "${GIT_USER_NAME}"
                             BUILD_NUMBER=${BUILD_NUMBER}
                             sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" kubernetes-manifests/deployment.yaml
-                            git add kubernetes-manifests/deployment.yaml
-                            git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                            git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                        '''
+                            if git diff --quite; then
+                                echo "No changes to commit"
+                                exit 0
+                            else
+                                git add kubernetes-manifests/deployment.yaml
+                                git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                                git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                            fi
+                            '''
                     }
                 }
             }
+
+
+
 
             // stage("email-notification-stage"){
             //     steps{

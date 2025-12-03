@@ -170,7 +170,7 @@ pipeline{
                                     <p>The build number ${BUILD_NUMBER} for the job ${JOB_NAME} has completed with status: ${currentBuild.currentResult}.</p>
                                     <p>Regards,<br/>Jenkins CI/CD Pipeline</p>""",
                             to: 'sivasuribabupenkey@gmail.com' ,
-                            cc: 'clouddevopsengineer0@gmail.com )
+                            cc: 'clouddevopsengineer0@gmail.com' )
                     }
                 }
             }

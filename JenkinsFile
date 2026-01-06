@@ -1,135 +1,39 @@
-pipeline{
+pipeline  {
     agent any
 
-    tools{
-        maven 'maven'
-        jdk "jdk21"
-    }
-
-    environment{
-        SCANNER_HOME = tool "sonar-scanner"
-    }
-    
-    stages{
-            stage("source-code-checkout-stage"){
+    stages {
+        stage("source-code-checkout-stage"){
                 steps{
                     checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/SivaSuribabu/project-Multi-Tier-CICD-Project-With-SSL-Certificate.git']])
                 }
             } 
 
-            stage("code-compile-stage"){
-                steps{
-                    sh "mvn clean compile"
-                }
+        stage('Build') {
+            steps {
+                echo 'Building...'
+                // Add your build steps here
             }
-
-            stage("unit-test-stage"){
-                steps{
-                    sh "mvn test"
-                }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing...'
+                // Add your test steps here
             }
-
-            stage("file-system-scan"){
-                steps{
-                    sh "trivy fs --format table -o trivy-fs-scan-report.html ."
-                }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+                // Add your deploy steps here
             }
+        }
+    }
 
-            stage("staticsode-analysis"){
-                steps{
-                    withSonarQubeEnv('sonar-server'){
-                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectName=updated-blogging-app \
-                        -Dsonar.projectKey=updated-blogging-app \
-                        -Dsonar.java.binaries=target '''
-                    }
-
-                }
-            }
-            stage("code-packaging-stage"){
-                steps{
-                    sh "mvn clean package"
-                }
-            }
-
-            stage("Artifacts-nexus-upload-stage"){
-                steps{
-                    withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: 'jdk21', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
-                        sh "mvn deploy"
-                    }
-                }
-            }
-
-            stage("docker-image-build-stage"){
-                steps{
-                    script{
-                        withDockerRegistry(credentialsId: 'docker-credd') {
-                            sh "docker build -t sivasuribabu/blogging-app:V1.0 ."
-                        }
-                    }
-                }
-            }
-            stage("docker-image-scanning-stage"){
-                steps{
-                    sh "trivy image --format table -o trivy-image-scan-report.html sivasuribabu/blogging-app:V1.0"
-                }
-            }
-
-            stage("docker-push-stage"){
-                steps{
-                    script{
-                        withDockerRegistry(credentialsId: 'docker-credd') {
-                            sh "docker push sivasuribabu/blogging-app:V1.0"
-                        }
-                    }   
-                }
-
-            }
-
-          
-            
-             stage('Update Deployment File') {
-                environment {
-                    GIT_REPO_NAME = "project-Multi-Tier-CICD-Project-With-SSL-Certificate"
-                    GIT_USER_NAME = "SivaSuribabu"
-                }
-                steps {
-                    withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-                            sh '''
-                            git config user.email "sivasuribabupenkey@gmail.com"
-                            git config user.name "${GIT_USER_NAME}"
-                            BUILD_NUMBER=${BUILD_NUMBER}
-                            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" kubernetes-manifests/deployment.yaml
-                            if git diff --quite; then
-                                echo "No changes to commit"
-                                exit 0
-                            else
-                                git add kubernetes-manifests/deployment.yaml
-                                git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                                git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                            fi
-                            '''
-                    }
-                }
-            }
-
-
-            stage('email-notification-stage') {
-                steps {
-                    script {
-                        emailext (
-                            attachLog: true,
-                            subject: "Build-${BUILD_NUMBER} - ${JOB_NAME} - ${currentBuild.currentResult}",
-                            body: """<p>Hi Team,</p>
-                                    <p>The build number ${BUILD_NUMBER} for the job ${JOB_NAME} has completed with status: ${currentBuild.currentResult}.</p>
-                                    <p>Regards,<br/>Jenkins CI/CD Pipeline</p>""",
-                            to: 'sivasuribabupenkey@gmail.com' ,
-                            cc: 'clouddevopsengineer0@gmail.com' )
-                    }
-                }
-            }
-
-
-
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
     }
 }

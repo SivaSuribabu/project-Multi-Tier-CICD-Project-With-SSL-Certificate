@@ -1,0 +1,189 @@
+pipeline{
+    agent any
+
+    tools{
+        maven 'maven'
+        jdk "jdk21"
+    }
+
+    environment{
+        SCANNER_HOME = tool "sonar-scanner"
+    }
+    
+    stages{
+            stage("source-code-checkout-stage"){
+                steps{
+                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/SivaSuribabu/project-Multi-Tier-CICD-Project-With-SSL-Certificate.git']])
+                }
+            } 
+
+            stage("code-compile-stage"){
+                steps{
+                    sh "mvn clean compile"
+                }
+            }
+
+            stage("unit-test-stage"){
+                steps{
+                    sh "mvn test"
+                }
+            }
+
+            stage("file-system-scan"){
+                steps{
+                    sh "trivy fs --format table -o trivy-fs-scan-report.html ."
+                }
+            }
+
+            stage("staticsode-analysis"){
+                steps{
+                    withSonarQubeEnv('sonar-server'){
+                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectName=updated-blogging-app \
+                        -Dsonar.projectKey=updated-blogging-app \
+                        -Dsonar.java.binaries=target '''
+                    }
+
+                }
+            }
+            stage("code-packaging-stage"){
+                steps{
+                    sh "mvn clean package"
+                }
+            }
+
+            stage("Artifacts-nexus-upload-stage"){
+                steps{
+                    withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: 'jdk21', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
+                        sh "mvn deploy"
+                    }
+                }
+            }
+
+            stage("docker-image-build-stage"){
+                steps{
+                    script{
+                        withDockerRegistry(credentialsId: 'docker-credd') {
+                            sh "docker build -t sivasuribabu/blogging-app:V1.0 ."
+                        }
+                    }
+                }
+            }
+            stage("docker-image-scanning-stage"){
+                steps{
+                    sh "trivy image --format table -o trivy-image-scan-report.html sivasuribabu/blogging-app:V1.0"
+                }
+            }
+
+            stage("docker-push-stage"){
+                steps{
+                    script{
+                        withDockerRegistry(credentialsId: 'docker-credd') {
+                            sh "docker push sivasuribabu/blogging-app:V1.0"
+                        }
+                    }   
+                }
+
+            }
+
+            // stage("update-k8s-manifests-files") {
+            //     environment {
+            //         GIT_REPOSITORY = 'project-Multi-Tier-CICD-Project-With-SSL-Certificate'
+            //         GIT_USERNAME   = 'SivaSuribabu'
+            //     }
+            //     steps {
+            //         withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+            //             // Use triple-double quotes so Groovy interpolates env vars like ${env.GIT_REPOSITORY}
+            //             sh """
+            //                 set -euo pipefail
+
+            //                 git config user.email "sivasuribabupenkey@gmail.com"
+            //                 git config user.name "${env.GIT_USERNAME}"
+
+            //                 WORKING_FILE="${env.GIT_REPOSITORY}/kubernetes-manifests/deployment.yaml"
+
+            //                 if [ ! -f "$WORKING_FILE" ]; then
+            //                 echo "ERROR: file not found: $WORKING_FILE"
+            //                 ls -la "${env.GIT_REPOSITORY}/kubernetes-manifests" || true
+            //                 exit 1
+            //                 fi
+
+            //                 # Replace tag placeholder with the current build number
+            //                 sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" "$WORKING_FILE"
+
+            //                 git add "$WORKING_FILE"
+
+            //                 # Commit only if there are staged changes
+            //                 if git diff --cached --quiet; then
+            //                 echo "No changes to commit"
+            //                 else
+            //                 git commit -m "Updating image tag to ${BUILD_NUMBER}"
+            //                 # Push using token; note withCredentials will mask the token in console output
+            //                 git push "https://${GITHUB_TOKEN}@github.com/${env.GIT_USERNAME}/${env.GIT_REPOSITORY}.git" HEAD:main
+            //                 fi
+            //             """
+            //         }
+            //     }
+            // }
+            
+             stage('Update Deployment File') {
+                environment {
+                    GIT_REPO_NAME = "project-Multi-Tier-CICD-Project-With-SSL-Certificate"
+                    GIT_USER_NAME = "SivaSuribabu"
+                }
+                steps {
+                    withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                            sh '''
+                            git config user.email "sivasuribabupenkey@gmail.com"
+                            git config user.name "${GIT_USER_NAME}"
+                            BUILD_NUMBER=${BUILD_NUMBER}
+                            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" kubernetes-manifests/deployment.yaml
+                            if git diff --quite; then
+                                echo "No changes to commit"
+                                exit 0
+                            else
+                                git add kubernetes-manifests/deployment.yaml
+                                git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                                git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                            fi
+                            '''
+                    }
+                }
+            }
+
+
+
+
+            // stage("email-notification-stage"){
+            //     steps{
+            //         emailext (
+            //             attachLog: true,
+            //             subject: "Build-${BUILD_NUMBER} - ${JOB_NAME} - ${BUILD_STATUS}",
+            //             body: '''<p>Hi Siva Suribabu,</p>
+            //                     <p>The build number ${BUILD_NUMBER} for the job ${JOB_NAME} has completed with status: ${BUILD_STATUS}.</p>
+            //                     <p>Please find the attached build log for more details.</p>
+            //                     <p>Regards,<br/>Jenkins CI/CD Pipeline</p>''',
+            //             to: 'sivasuribabupenkey@gmail.com' ,
+            //             cc: 'clouddevopsengineer0@gmail.com' , 'clouddevopsenginner2@gmail.com' , 'clouddevopsenginner3@gmail.com' 
+            //         )
+            //     }
+            // }
+            stage('email-notification-stage') {
+                steps {
+                    script {
+                        emailext (
+                            attachLog: true,
+                            subject: "Build-${BUILD_NUMBER} - ${JOB_NAME} - ${currentBuild.currentResult}",
+                            body: """<p>Hi Team,</p>
+                                    <p>The build number ${BUILD_NUMBER} for the job ${JOB_NAME} has completed with status: ${currentBuild.currentResult}.</p>
+                                    <p>Regards,<br/>Jenkins CI/CD Pipeline</p>""",
+                            to: 'sivasuribabupenkey@gmail.com' ,
+                            cc: 'clouddevopsengineer0@gmail.com' )
+                    }
+                }
+            }
+
+
+
+    }
+}
